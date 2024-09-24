@@ -2,18 +2,20 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../Libft/libft.h"
 
 #define INIT_BUFF_SIZE 256
 #define BUFFER_SIZE 1024
-#define LINE_TAB_SIZE 10
+#define LINE_TAB_SIZE 20
 
 int is_line_empty(const char *line) {
-    return line[0] != '\0'; 
+    return line[0] == '\0'; 
 }
 
 int free_parsed_map(char **parsed_file, int line_count){
     for (int i = 0; i < line_count; i++) {
-        free(parsed_file[i]);  
+        //printf("%s\n", parsed_file[i]);
+        free(parsed_file[i]);
     }
     free(parsed_file);
     return 1;
@@ -27,7 +29,7 @@ char **parse_map(int *line_count) {
     char buffer[BUFFER_SIZE];
     int bytes_read;
 
-    char *line = malloc(INIT_BUFF_SIZE); // Allocation initiale pour une ligne
+    char *line = malloc(INIT_BUFF_SIZE);                    // Allocation initiale pour une ligne
     if (!line) {
         perror("Erreur: can't malloc line in parse_map");
         exit(EXIT_FAILURE);
@@ -43,11 +45,11 @@ char **parse_map(int *line_count) {
         for (int i = 0; i < bytes_read; i++) {
             char c = buffer[i];
 
-            if (c == '\n') {
+            if (c == '\n') {                       // SI NOUVELLE LIGNE -----------------
                 line[line_length] = '\0';
 
-                if (!is_line_empty(line)) {
-                    fprintf(stderr, "Erreur : ligne non conforme ou vide\n");
+                if (is_line_empty(line)) {
+                    fprintf(stderr, "Erreur: ligne non conforme ou vide\n");
                     free(line);
                     for (int j = 0; j < *line_count; j++) {
                         free(lines[j]);
@@ -56,12 +58,11 @@ char **parse_map(int *line_count) {
                     exit(EXIT_FAILURE);
                 }
 
-                // Vérifier si nous devons redimensionner le tableau
-                if (*line_count >= (int)tab_lines_capacity) {
+                if (*line_count >= (int)tab_lines_capacity) {                       // REDIMENSIONNER TABLEAU SI NECESSAIRE
                     size_t new_capacity = tab_lines_capacity * 2;
                     char **new_lines = malloc(new_capacity * sizeof(char *));
                     if (!new_lines) {
-                        perror("Erreur d'allocation");
+                        perror("Erreur: Malloc allocation resizing failed");
                         free(line);
                         for (int j = 0; j < *line_count; j++) {
                             free(lines[j]);
@@ -70,16 +71,14 @@ char **parse_map(int *line_count) {
                         exit(EXIT_FAILURE);
                     }
 
-                    // Copier les lignes existantes dans le nouveau tableau
                     for (size_t j = 0; j < tab_lines_capacity; j++) {
                         new_lines[j] = lines[j];
                     }
                     free(lines);
-                    lines = new_lines; // Mettre à jour le pointeur
-                    tab_lines_capacity = new_capacity;
+                    lines = new_lines;                          // METTRE A JOUR POINTEUR
+                    tab_lines_capacity = new_capacity;          
                 }
 
-                // Allocation manuelle pour la nouvelle ligne
                 lines[*line_count] = malloc((line_length + 1) * sizeof(char));
                 if (!lines[*line_count]) {
                     perror("Erreur d'allocation");
@@ -90,54 +89,50 @@ char **parse_map(int *line_count) {
                     free(lines);
                     exit(EXIT_FAILURE);
                 }
-                memcpy(lines[*line_count], line, line_length + 1); // Copier la ligne
-                (*line_count)++; // Incrémenter le compteur de lignes
-                line_length = 0;  // Réinitialiser la longueur pour la prochaine ligne
+                ft_memcpy(lines[*line_count], line, line_length + 1);   // Copier la ligne
+                (*line_count)++;                                        // Incrémenter le compteur de lignes
+                line_length = 0;                                        // Réinitialiser la longueur pour la prochaine ligne
             } else {
-                // Ajouter le caractère à la ligne
                 if (line_length + 1 >= buffer_size) {
-                    // Augmenter la taille du buffer
-                    buffer_size *= 2; // Doubler la taille
+                    buffer_size *= 2;
                     char *new_line = malloc(buffer_size);
                     if (!new_line) {
                         perror("Erreur d'allocation");
                         free(line);
                         exit(EXIT_FAILURE);
                     }
-                    memcpy(new_line, line, line_length); // Copier l'ancien contenu
-                    free(line); // Libérer l'ancien buffer
-                    line = new_line; // Mettre à jour le pointeur
+                    ft_memcpy(new_line, line, line_length); // Copier l'ancien contenu
+                    free(line);                             // Libérer l'ancien buffer
+                    line = new_line;                        // Mettre à jour le pointeur
                 }
-                line[line_length++] = c;  // Ajouter le caractère
+                line[line_length++] = c;                    // Ajouter le caractère
             }
         }
     }
 
-    // Traiter la dernière ligne si elle ne se termine pas par un saut de ligne
     if (line_length > 0) {
-        line[line_length] = '\0'; // Terminer la chaîne
-        if (!is_line_empty(line)) {
+        line[line_length] = '\0';
+        if (is_line_empty(line)) {
             fprintf(stderr, "Erreur : ligne non conforme ou vide\n");
             free(line);
             for (int j = 0; j < *line_count; j++) {
-                free(lines[j]); // Libérer les lignes précédemment allouées
+                free(lines[j]);
             }
             free(lines);
             exit(EXIT_FAILURE);
         }
-        // Ajouter la dernière ligne au tableau
-        lines[*line_count] = malloc((line_length + 1) * sizeof(char)); // Allocation manuelle
+        lines[*line_count] = malloc((line_length + 1) * sizeof(char));
         if (!lines[*line_count]) {
-            perror("Erreur d'allocation");
+            perror("Erreur: Malloc allocation");
             free(line);
             free(lines);
             exit(EXIT_FAILURE);
         }
-        memcpy(lines[*line_count], line, line_length + 1); // Copier la ligne
+        ft_memcpy(lines[*line_count], line, line_length + 1);
         (*line_count)++;
     }
-
-    free(line); // Libérer la mémoire allouée pour la ligne
-    return lines; // Retourner le tableau de lignes
+    free(line);     // Libérer la mémoire allouée pour la ligne
+    
+    return lines;   // Retourner le tableau de lignes
 }
 

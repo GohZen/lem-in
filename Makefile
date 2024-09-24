@@ -4,10 +4,11 @@ LIBFT_DIR = ./libft
 LIBFT_A = $(LIBFT_DIR)/libft.a
 
 c_files = main.c \
-		  parse_file.c \
+		  sources/parse_file.c \
 
 GCC = gcc
 Flags = -Wall -Werror -Wextra -Iincludes
+Sanitize = -fsanitize=address
 C_FILES = $(c_files)
 OBJ_FILES = $(c_files:.c=.o) 
 
@@ -21,6 +22,9 @@ $(NAME): $(OBJ_FILES)
 
 $(LIBFT_A):
 	$(MAKE) -C $(LIBFT_DIR)
+
+debug: Flags += $(Sanitize) -g
+debug: re
 
 clean:
 	rm -f $(OBJ_FILES)
