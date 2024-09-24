@@ -131,8 +131,8 @@ char **parse_map(int *line_count) {
         ft_memcpy(lines[*line_count], line, line_length + 1);
         (*line_count)++;
     }
-    free(line);     // Libérer la mémoire allouée pour la ligne
-    
-    return lines;   // Retourner le tableau de lignes
+    free(line);
+
+    return lines; 
 }
 
