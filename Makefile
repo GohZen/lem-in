@@ -4,6 +4,7 @@ LIBFT_DIR = ./libft
 LIBFT_A = $(LIBFT_DIR)/libft.a
 
 c_files = main.c \
+		  parse_file.c \
 
 GCC = gcc
 Flags = -Wall -Werror -Wextra -Iincludes

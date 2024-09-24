@@ -120,7 +120,22 @@
 #include "Libft/libft.h"
 #include <stdio.h>
 
+#include "includes/parse_file.h"
+
 int main(int argc, char** argv) {
     (void)argc;
     (void)argv;
+
+    char **parsed_map;
+    int line_count = 0;
+    parsed_map = parse_map(&line_count);
+
+    // Afficher contenu de parsed_file
+    //for (int i = 0; i < line_count; i++) {
+    //    printf("Ligne %d : %s\n", i + 1, parsed_map[i]);
+    //}
+
+    
+
+    free_parsed_map(parsed_map, line_count);
 }
