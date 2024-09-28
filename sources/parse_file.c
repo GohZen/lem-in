@@ -3,14 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../Libft/libft.h"
+#include "../includes/parse_file.h"
 
-#define INIT_BUFF_SIZE 256
-#define BUFFER_SIZE 1024
-#define LINE_TAB_SIZE 20
-
-int is_line_empty(const char *line) {
-    return line[0] == '\0'; 
-}
+#define INIT_BUFF_SIZE  256
+#define BUFFER_SIZE     1024
+#define LINE_TAB_SIZE   20
 
 void *safe_malloc(size_t size, char **to_free, int line_count) {
     void *ptr_malloc = malloc(size);
@@ -25,6 +22,20 @@ void *safe_malloc(size_t size, char **to_free, int line_count) {
         exit(EXIT_FAILURE);
     }
     return ptr_malloc;
+}
+
+t_parsed_data *init_parsed_data(char **to_free, int line_count) {
+    t_parsed_data *data = (t_parsed_data *)safe_malloc(sizeof(t_parsed_data), to_free, line_count);
+    data->start = NULL;
+    data->end = NULL;
+    data->comments = (char **)safe_malloc(sizeof(char *) * line_count, to_free, line_count);
+    data->comment_count = 0;
+
+    return data;
+}
+
+int is_line_empty(const char *line) {
+    return line[0] == '\0'; 
 }
 
 int free_parsed_map(char **parsed_file, int line_count){
@@ -44,8 +55,8 @@ char **parse_map(int *line_count) {
     char buffer[BUFFER_SIZE];
     int bytes_read;
 
-    char *line = safe_malloc(INIT_BUFF_SIZE, NULL, 0);  // Allocation initiale pour une ligne
-    char **lines = safe_malloc(LINE_TAB_SIZE * sizeof(char *), NULL, 0);  // Allocation initiale pour le tableau de lignes
+    char *line = safe_malloc(INIT_BUFF_SIZE, NULL, 0);
+    char **lines = safe_malloc(LINE_TAB_SIZE * sizeof(char *), NULL, 0); 
 
     while ((bytes_read = read(0, buffer, BUFFER_SIZE)) > 0) {
         for (int i = 0; i < bytes_read; i++) {
@@ -73,18 +84,18 @@ char **parse_map(int *line_count) {
                 }
 
                 lines[*line_count] = safe_malloc((line_length + 1) * sizeof(char), lines, *line_count);
-                ft_memcpy(lines[*line_count], line, line_length + 1);  // Copier la ligne
-                (*line_count)++;  // Incrémenter le compteur de lignes
-                line_length = 0;  // Réinitialiser la longueur pour la prochaine ligne
+                ft_memcpy(lines[*line_count], line, line_length + 1);
+                (*line_count)++; 
+                line_length = 0;
             } else {
                 if (line_length + 1 >= buffer_size) {
                     buffer_size *= 2;
                     char *new_line = safe_malloc(buffer_size, lines, *line_count);
-                    ft_memcpy(new_line, line, line_length);  // Copier l'ancien contenu
-                    free(line);  // Libérer l'ancien buffer
-                    line = new_line;  // Mettre à jour le pointeur
+                    ft_memcpy(new_line, line, line_length);
+                    free(line);
+                    line = new_line;
                 }
-                line[line_length++] = c;  // Ajouter le caractère
+                line[line_length++] = c;
             }
         }
     }
@@ -106,3 +117,25 @@ char **parse_map(int *line_count) {
     return lines;
 }
 
+void define_parsed_elem(char **parsed_file, int line_count, t_parsed_data *parsed_data) {
+
+    for (int i = 0; i < line_count; i++) {
+        printf("ligne = %s\n", parsed_file[i]);
+        if (parsed_file[i][0] == '#') {
+            if (parsed_file[i][1] == '#') {                         // CAS START/END
+                if(ft_strncmp(parsed_file[i], "##start", 7) == 0) {
+                    //printf("START FOUND\n");
+                    parsed_data->start = parsed_file[i+1];
+                }
+                if(ft_strncmp(parsed_file[i], "##end", 5) == 0) {
+                    //printf("END FOUND\n");
+                    parsed_data->end = parsed_file[i+1];
+                }
+            } else {                                                // CAS COMMENTAIRES
+                //printf("COMMENTAIRE FOUND\n");
+                parsed_data->comments[parsed_data->comment_count] = parsed_file[i];
+                parsed_data->comment_count++;
+            }
+        }        
+    }
+}

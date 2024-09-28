@@ -128,12 +128,20 @@ int main(int argc, char** argv) {
 
     char **parsed_map;
     int line_count = 0;
+
     parsed_map = parse_map(&line_count);
-    (void)parsed_map;
+    t_parsed_data *parsed_data = init_parsed_data(parsed_map, line_count);
+
+    define_parsed_elem(parsed_map, line_count, parsed_data);
+
+    printf("start : %s\n end: %s\n", parsed_data->start, parsed_data->end);
+    
+    //t_parsed_data parsed_elem = init_parsed_data(NULL, line_count);
+
     // Afficher contenu de parsed_file
     // for (int i = 0; i < line_count; i++) {
     //    printf("Ligne %d : %s\n", i + 1, parsed_map[i]);
     // }
-
+    
     free_parsed_map(parsed_map, line_count);
 }
